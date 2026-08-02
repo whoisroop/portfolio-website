@@ -1,147 +1,55 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { portfolioData } from '@/data/portfolio';
-import { Send, Mail, MapPin, Copy, Check, Globe, Phone } from 'lucide-react';
+import { Mail, MapPin, Phone, Globe, Copy, Check, Send, MessageSquare, ArrowRight } from 'lucide-react';
 
-export function ContactWindow() {
-  const [copied, setCopied] = useState<string | null>(null);
-  const [formState, setFormState] = useState({ name: '', email: '', message: '' });
-  const [submitted, setSubmitted] = useState(false);
-
-  const copyToClipboard = async (text: string, id: string) => {
-    await navigator.clipboard.writeText(text);
-    setCopied(id);
-    setTimeout(() => setCopied(null), 2000);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormState({ name: '', email: '', message: '' });
-    }, 3000);
-  };
-
+function CopyChip({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => { navigator.clipboard.writeText(value); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   return (
-    <div className="p-4 space-y-4">
-      {/* Contact info chips */}
-      <div className="space-y-2">
-        <ContactChip
-          icon={Mail}
-          label="Email"
-          value={portfolioData.email}
-          copied={copied === 'email'}
-          onCopy={() => copyToClipboard(portfolioData.email, 'email')}
-        />
-        <ContactChip
-          icon={MapPin}
-          label="Location"
-          value={portfolioData.location}
-          copied={copied === 'location'}
-          onCopy={() => copyToClipboard(portfolioData.location, 'location')}
-        />
-        <ContactChip
-          icon={Phone}
-          label="Phone"
-          value={portfolioData.phone}
-          copied={copied === 'phone'}
-          onCopy={() => copyToClipboard(portfolioData.phone, 'phone')}
-        />
-        <ContactChip
-          icon={Globe}
-          label="GitHub"
-          value={portfolioData.website}
-          copied={copied === 'website'}
-          onCopy={() => copyToClipboard(portfolioData.website, 'website')}
-        />
-      </div>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input
-          type="text"
-          placeholder="Your Name"
-          value={formState.name}
-          onChange={e => setFormState(prev => ({ ...prev, name: e.target.value }))}
-          required
-          className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700
-                     bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm
-                     focus:outline-none focus:ring-2 focus:ring-blue-500/30
-                     text-gray-700 dark:text-gray-200 placeholder-gray-400"
-        />
-        <input
-          type="email"
-          placeholder="Your Email"
-          value={formState.email}
-          onChange={e => setFormState(prev => ({ ...prev, email: e.target.value }))}
-          required
-          className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700
-                     bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm
-                     focus:outline-none focus:ring-2 focus:ring-blue-500/30
-                     text-gray-700 dark:text-gray-200 placeholder-gray-400"
-        />
-        <textarea
-          placeholder="Your Message"
-          value={formState.message}
-          onChange={e => setFormState(prev => ({ ...prev, message: e.target.value }))}
-          required
-          rows={3}
-          className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700
-                     bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm resize-none
-                     focus:outline-none focus:ring-2 focus:ring-blue-500/30
-                     text-gray-700 dark:text-gray-200 placeholder-gray-400"
-        />
-        <button
-          type="submit"
-          disabled={submitted}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium
-                     rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors
-                     shadow-lg shadow-blue-500/25 disabled:opacity-50"
-        >
-          {submitted ? (
-            <>
-              <Check size={16} />
-              Sent Successfully!
-            </>
-          ) : (
-            <>
-              <Send size={16} />
-              Send Message
-            </>
-          )}
-        </button>
-      </form>
-    </div>
+    <motion.button className="flex items-center gap-3 w-full glass-light rounded-lg p-3 hover:bg-white/[0.08] transition-colors group" onClick={handleCopy} whileHover={{ x: 3 }}>
+      <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center shrink-0"><Icon className="w-4 h-4 text-indigo-400" /></div>
+      <div className="flex-1 text-left min-w-0"><p className="text-[10px] text-white/60">{label}</p><p className="text-xs text-white/80 truncate">{value}</p></div>
+      {copied ? <Check className="w-3.5 h-3.5 text-green-400 shrink-0" /> : <Copy className="w-3.5 h-3.5 text-white/50 group-hover:text-white/80 shrink-0" />}
+    </motion.button>
   );
 }
 
-function ContactChip({ icon: Icon, label, value, copied, onCopy }: {
-  icon: React.ComponentType<{ size: number; className?: string }>;
-  label: string;
-  value: string;
-  copied: boolean;
-  onCopy: () => void;
-}) {
+export function ContactWindow() {
+  const subject = encodeURIComponent(`Hello ${portfolioData.name}`);
+  const body = encodeURIComponent(`Hi ${portfolioData.name},\n\nI came across your portfolio and would love to connect.\n\n`);
+  const mailtoUrl = `mailto:${portfolioData.email}?subject=${subject}&body=${body}`;
+
   return (
-    <motion.button
-      whileHover={{ scale: 1.01 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={onCopy}
-      className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-200/60 
-                 dark:border-gray-700/40 bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm
-                 hover:bg-white/60 dark:hover:bg-gray-800/60 transition-all text-left"
-    >
-      <Icon size={16} className="text-blue-500 shrink-0" />
-      <div className="flex-1 min-w-0">
-        <p className="text-[10px] text-gray-400 dark:text-gray-500">{label}</p>
-        <p className="text-xs font-medium text-gray-700 dark:text-gray-200 truncate">{value}</p>
+    <div className="p-5 space-y-4">
+      <div className="space-y-2">
+        <CopyChip icon={Mail} label="Email" value={portfolioData.email} />
+        <CopyChip icon={MapPin} label="Location" value={portfolioData.location} />
+        <CopyChip icon={Phone} label="Phone" value={portfolioData.phone} />
+        <CopyChip icon={Globe} label="GitHub" value={portfolioData.github} />
       </div>
-      {copied ? (
-        <Check size={14} className="text-green-500 shrink-0" />
-      ) : (
-        <Copy size={14} className="text-gray-400 shrink-0" />
-      )}
-    </motion.button>
+
+      {/* Direct email CTA */}
+      <motion.div className="glass-light rounded-xl p-5 text-center space-y-4" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto">
+          <MessageSquare className="w-7 h-7 text-indigo-400" />
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-white">Let's work together</h3>
+          <p className="text-xs text-white/60 mt-1">Click below to open your email client — your message goes straight to my inbox.</p>
+        </div>
+        <motion.a
+          href={mailtoUrl}
+          className="flex items-center justify-center gap-2 w-full h-11 rounded-lg bg-indigo-500/20 text-indigo-300 text-sm font-medium border border-indigo-500/30 hover:bg-indigo-500/30 transition-colors"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Send className="w-4 h-4" />
+          Send me an email
+          <ArrowRight className="w-4 h-4 ml-1" />
+        </motion.a>
+        <p className="text-[10px] text-white/35">Opens your default mail app — no form, no hassle.</p>
+      </motion.div>
+    </div>
   );
 }

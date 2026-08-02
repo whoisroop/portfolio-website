@@ -1,16 +1,28 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useWindows, type WindowState } from '@/context/WindowContext';
-import { windowMeta } from '@/data/portfolio';
-import { StartMenu } from './StartMenu';
+import { Monitor, Search } from 'lucide-react';
+import { useWindows } from '@/context/WindowContext';
 import { Clock } from './Clock';
-import { Sparkles } from 'lucide-react';
+import { StartMenu } from './StartMenu';
+import { AppIcon } from '@/components/ui/AppIcons';
 
-export function Taskbar() {
-  const { windows, focusWindow, activeWindowId } = useWindows();
+const TAB_ACCENTS: Record<string, string> = {
+  about: '#6366f1',
+  projects: '#8b5cf6',
+  skills: '#06b6d4',
+  experience: '#ec4899',
+  education: '#f59e0b',
+  resume: '#10b981',
+  contact: '#f43f5e',
+  terminal: '#22c55e',
+};
+
+export function Taskbar({ onOpenPalette }: { onOpenPalette: () => void }) {
+  const { windows, focusWindow, toggleMinimize, getHighestZ } = useWindows();
   const [startOpen, setStartOpen] = useState(false);
-  
+
   const openWindows = Array.from(windows.values()).filter(w => w.isOpen);
+  const topZ = getHighestZ();
 
   return (
     <>
@@ -18,78 +30,74 @@ export function Taskbar() {
         {startOpen && <StartMenu onClose={() => setStartOpen(false)} />}
       </AnimatePresence>
 
-      <div
-        className="fixed bottom-0 left-0 right-0 h-12 flex items-center gap-1 px-2 z-[9999]
-                   bg-white/60 dark:bg-gray-900/70 backdrop-blur-xl
-                   border-t border-white/30 dark:border-gray-700/30
-                   shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
-      >
+      <div className="fixed bottom-0 left-0 right-0 h-[48px] glass border-t border-white/[0.06] flex items-center px-2 gap-1 z-[6000]">
+        {/* Start Button */}
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setStartOpen(!startOpen)}
-          className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0
-                     bg-gradient-to-br from-indigo-500 to-purple-600
-                     shadow-lg shadow-indigo-500/25
-                     hover:shadow-indigo-500/40 transition-shadow"
+          className={`h-10 px-3 rounded-lg flex items-center gap-2 transition-colors ${
+            startOpen
+              ? 'bg-white/15 text-white'
+              : 'text-white/80 hover:bg-white/10 hover:text-white'
+          }`}
+          onClick={() => setStartOpen(prev => !prev)}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
         >
-          <Sparkles size={18} className="text-white" />
+          <Monitor className="w-5 h-5" />
+          <span className="text-xs font-medium hidden sm:inline">Start</span>
         </motion.button>
 
-        <div className="w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-0.5" />
+        <div className="w-px h-6 bg-white/[0.08] mx-1" />
 
+        {/* Window Tabs */}
         <div className="flex-1 flex items-center gap-1 overflow-x-auto">
-          <AnimatePresence>
-            {openWindows.map(win => (
-              <TaskbarButton
+          {openWindows.map(win => {
+            const accent = TAB_ACCENTS[win.id] || '#6366f1';
+            const isActive = !win.isMinimized && win.zIndex === topZ;
+            return (
+              <motion.button
                 key={win.id}
-                win={win}
-                isActive={activeWindowId === win.id && !win.isMinimized}
-                onClick={() => focusWindow(win.id)}
-              />
-            ))}
-          </AnimatePresence>
+                className="h-10 max-w-[180px] px-3 rounded-lg flex items-center gap-2 text-xs transition-colors truncate relative"
+                style={{
+                  backgroundColor: isActive ? `${accent}18` : win.isMinimized ? 'transparent' : 'rgba(255,255,255,0.06)',
+                  color: isActive ? '#fff' : win.isMinimized ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.8)',
+                }}
+                onClick={() => win.isMinimized ? focusWindow(win.id) : toggleMinimize(win.id)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                layout
+              >
+                {isActive && (
+                  <motion.div
+                    className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full"
+                    style={{ background: accent }}
+                    layoutId="taskbar-accent"
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  />
+                )}
+                <AppIcon id={win.id} size={14} />
+                <span className="truncate">{win.title}</span>
+              </motion.button>
+            );
+          })}
         </div>
 
-        <Clock />
+        <div className="w-px h-6 bg-white/[0.08] mx-1" />
+
+        {/* Search */}
+        <motion.button
+          className="h-10 w-10 rounded-lg flex items-center justify-center text-white/50 hover:bg-white/10 hover:text-white transition-colors"
+          onClick={onOpenPalette}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Search className="w-4 h-4" />
+        </motion.button>
+
+        {/* System Tray + Clock */}
+        <div className="h-10 px-3 rounded-lg flex items-center gap-2 hover:bg-white/5 transition-colors cursor-default">
+          <Clock />
+        </div>
       </div>
     </>
-  );
-}
-
-function TaskbarButton({ win, isActive, onClick }: { 
-  win: WindowState; 
-  isActive: boolean; 
-  onClick: () => void;
-}) {
-  const meta = windowMeta[win.id];
-  if (!meta) return null;
-  const Icon = meta.icon;
-
-  return (
-    <motion.button
-      initial={{ opacity: 0, scale: 0.8, x: -20 }}
-      animate={{ opacity: 1, scale: 1, x: 0 }}
-      exit={{ opacity: 0, scale: 0.8, x: -20 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={onClick}
-      className={`h-9 px-3 rounded-xl flex items-center gap-2 text-xs font-medium
-                 shrink-0 max-w-[180px] transition-all duration-200
-                 ${isActive 
-                   ? 'bg-white/80 dark:bg-white/15 shadow-md' 
-                   : 'bg-white/30 dark:bg-white/5 hover:bg-white/50 dark:hover:bg-white/10'
-                 }`}
-      style={{
-        borderBottom: isActive ? `2px solid ${meta.accentColor}` : '2px solid transparent',
-      }}
-    >
-      <Icon size={14} />
-      <span className="truncate hidden sm:block text-gray-700 dark:text-gray-200">
-        {meta.title}
-      </span>
-      {win.isMinimized && <span className="text-[10px] opacity-50 ml-auto">−</span>}
-    </motion.button>
   );
 }

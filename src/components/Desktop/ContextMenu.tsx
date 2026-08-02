@@ -1,82 +1,78 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Monitor, Sun, Moon, RefreshCw } from 'lucide-react';
-import { useTheme } from '@/context/ThemeContext';
+import { Monitor, RefreshCw } from 'lucide-react';
+import { portfolioData } from '@/data/portfolio';
+import { useWindows } from '@/context/WindowContext';
 
-interface ContextMenuProps {
+export function ContextMenu({
+  x,
+  y,
+  onClose,
+}: {
   x: number;
   y: number;
   onClose: () => void;
-}
-
-const MENU_WIDTH = 190;
-const MENU_HEIGHT = 110;
-
-export function ContextMenu({ x, y, onClose }: ContextMenuProps) {
-  const { theme, toggleTheme } = useTheme();
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Clamp position so the menu stays fully within the viewport
-  const clampedX = Math.min(x, window.innerWidth - MENU_WIDTH - 8);
-  const clampedY = Math.min(y, window.innerHeight - MENU_HEIGHT - 56); // 56 = taskbar + margin
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { openWindow } = useWindows();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
         onClose();
       }
     };
     const keyHandler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-    window.addEventListener('mousedown', handler);
-    window.addEventListener('keydown', keyHandler);
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('keydown', keyHandler);
     return () => {
-      window.removeEventListener('mousedown', handler);
-      window.removeEventListener('keydown', keyHandler);
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', keyHandler);
     };
   }, [onClose]);
 
+  const menuX = Math.min(x, typeof window !== 'undefined' ? window.innerWidth - 220 : x);
+  const menuY = Math.min(y, typeof window !== 'undefined' ? window.innerHeight - 230 : y);
+
+  const menuItems = [
+    { label: 'About Me', action: () => openWindow('about', 'About Me', portfolioData.desktopIcons[0].iconUrl) },
+    { label: 'Projects', action: () => openWindow('projects', 'Projects', portfolioData.desktopIcons[1].iconUrl) },
+    { label: 'Skills', action: () => openWindow('skills', 'Skills', portfolioData.desktopIcons[2].iconUrl) },
+    { label: 'Experience', action: () => openWindow('experience', 'Experience', portfolioData.desktopIcons[3].iconUrl) },
+    { label: 'Terminal', action: () => openWindow('terminal', 'Terminal', portfolioData.desktopIcons[7].iconUrl) },
+  ];
+
   return (
     <motion.div
-      ref={menuRef}
-      initial={{ opacity: 0, scale: 0.92 }}
+      ref={ref}
+      className="fixed z-[8000] glass rounded-xl overflow-hidden shadow-2xl w-52 py-1.5"
+      style={{ left: menuX, top: menuY }}
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.92 }}
-      transition={{ duration: 0.12 }}
-      style={{ position: 'fixed', left: clampedX, top: clampedY, zIndex: 9999 }}
-      className="rounded-xl border py-1.5 min-w-[180px] shadow-2xl
-                 bg-white/85 dark:bg-gray-900/90 backdrop-blur-2xl
-                 border-white/30 dark:border-gray-700/30"
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.1 }}
     >
-      <MenuItem icon={RefreshCw} label="Refresh Desktop" onClick={onClose} />
-      <div className="border-t border-gray-200/50 dark:border-gray-700/50 my-1" />
-      <MenuItem
-        icon={Monitor}
-        label={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-        icon2={theme === 'dark' ? Sun : Moon}
-        onClick={() => { toggleTheme(); onClose(); }}
-      />
+      {menuItems.map((item, i) => (
+        <motion.button
+          key={i}
+          className="w-full text-left px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2.5"
+          onClick={() => { item.action(); onClose(); }}
+          whileHover={{ x: 2 }}
+        >
+          <Monitor className="w-3.5 h-3.5 text-white/40" />
+          {item.label}
+        </motion.button>
+      ))}
+      <div className="border-t border-white/[0.06] my-1" />
+      <button
+        className="w-full text-left px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2.5"
+        onClick={() => { window.location.reload(); }}
+      >
+        <RefreshCw className="w-3.5 h-3.5 text-white/40" />
+        Refresh
+      </button>
     </motion.div>
-  );
-}
-
-function MenuItem({ icon: Icon, label, icon2: Icon2, onClick }: {
-  icon: React.ComponentType<{ size: number; className?: string }>;
-  label: string;
-  icon2?: React.ComponentType<{ size: number; className?: string }>;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm
-                 hover:bg-white/60 dark:hover:bg-white/10 transition-colors
-                 text-gray-700 dark:text-gray-200"
-    >
-      <Icon size={15} className="text-gray-500 dark:text-gray-400" />
-      <span className="flex-1 text-left">{label}</span>
-      {Icon2 && <Icon2 size={13} className="text-gray-400" />}
-    </button>
   );
 }

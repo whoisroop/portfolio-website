@@ -1,167 +1,211 @@
-import { useRef, useCallback, useEffect, type ReactNode } from 'react';
+import { useCallback, useRef, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { useWindows, type WindowState } from '@/context/WindowContext';
-import { useTheme } from '@/context/ThemeContext';
-import { TitleBar } from '@/components/ui/TitleBar';
-import { windowMeta } from '@/data/portfolio';
+import { Minus, Square, X, Maximize2 } from 'lucide-react';
+import type { WindowState } from '@/context/WindowContext';
+import { useWindows } from '@/context/WindowContext';
+import { AppIcon } from '@/components/ui/AppIcons';
 
-interface WindowProps {
-  win: WindowState;
-  children: ReactNode;
+interface ResizeHandle {
+  cursor: string;
+  onResize: (dx: number, dy: number, e: MouseEvent) => { w: number; h: number; x?: number; y?: number };
 }
 
-const RESIZE_HANDLE_SIZE = 8;
-type ResizeDir = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+const WINDOW_ACCENTS: Record<string, string> = {
+  about: '#6366f1',
+  projects: '#8b5cf6',
+  skills: '#06b6d4',
+  experience: '#ec4899',
+  education: '#f59e0b',
+  resume: '#10b981',
+  contact: '#f43f5e',
+  terminal: '#22c55e',
+};
 
-export function Window({ win, children }: WindowProps) {
-  const { focusWindow, updatePosition, updateSize, activeWindowId, closeWindow } = useWindows();
-  const meta = windowMeta[win.id];
-  const { theme } = useTheme();
-  const isActive = activeWindowId === win.id;
-  const isDark = theme === 'dark';
-  const resizeRef = useRef<ResizeDir | null>(null);
-  const resizeStartRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
+const WINDOW_GRADIENTS: Record<string, string> = {
+  about: 'from-indigo-500/5 via-indigo-500/2 to-transparent',
+  projects: 'from-purple-500/5 via-purple-500/2 to-transparent',
+  skills: 'from-cyan-500/5 via-cyan-500/2 to-transparent',
+  experience: 'from-pink-500/5 via-pink-500/2 to-transparent',
+  education: 'from-amber-500/5 via-amber-500/2 to-transparent',
+  resume: 'from-emerald-500/5 via-emerald-500/2 to-transparent',
+  contact: 'from-rose-500/5 via-rose-500/2 to-transparent',
+  terminal: 'from-green-500/3 via-green-500/1 to-transparent',
+};
 
-  const handlePointerDown = useCallback(() => {
-    focusWindow(win.id);
-  }, [focusWindow, win.id]);
+export function Window({ win, children }: { win: WindowState; children: ReactNode }) {
+  const { closeWindow, toggleMinimize, toggleMaximize, focusWindow, updatePosition, updateSize, getHighestZ } = useWindows();
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Drag: we use x/y animate props managed by Framer Motion, not left/top CSS.
-  // This avoids the translate-vs-left/top conflict.
-  // During drag, Framer Motion updates x/y via CSS translate internally.
-  // On drag end, we persist the final position to state.
-  const handleDragEnd = useCallback((_: unknown, info: { offset: { x: number; y: number } }) => {
-    if (win.isMaximized) return;
-    updatePosition(win.id, {
-      x: Math.max(0, win.position.x + info.offset.x),
-      y: Math.max(0, win.position.y + info.offset.y),
-    });
-  }, [win.id, win.position, win.isMaximized, updatePosition]);
+  const accent = WINDOW_ACCENTS[win.id] || '#6366f1';
+  const gradient = WINDOW_GRADIENTS[win.id] || 'from-indigo-500/10 via-indigo-500/5 to-transparent';
+  const isTopWindow = win.zIndex === getHighestZ();
 
-  const handleResizeStart = useCallback((dir: ResizeDir, e: React.PointerEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    resizeRef.current = dir;
-    resizeStartRef.current = { x: e.clientX, y: e.clientY, w: win.size.width, h: win.size.height };
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  }, [win.size]);
+  const resizeHandles: ResizeHandle[] = [
+    {
+      cursor: 'se-resize',
+      onResize: (dx, dy) => ({ w: win.size.width + dx, h: win.size.height + dy }),
+    },
+    {
+      cursor: 'e-resize',
+      onResize: (dx) => ({ w: win.size.width + dx, h: win.size.height }),
+    },
+    {
+      cursor: 's-resize',
+      onResize: (_, dy) => ({ w: win.size.width, h: win.size.height + dy }),
+    },
+    {
+      cursor: 'sw-resize',
+      onResize: (dx, dy) => ({
+        w: win.size.width - dx,
+        h: win.size.height + dy,
+        x: win.position.x + dx,
+      }),
+    },
+  ];
 
-  const handleResizeMove = useCallback((e: React.PointerEvent) => {
-    if (!resizeRef.current) return;
-    const dir = resizeRef.current;
-    const dx = e.clientX - resizeStartRef.current.x;
-    const dy = e.clientY - resizeStartRef.current.y;
-    let newW = resizeStartRef.current.w;
-    let newH = resizeStartRef.current.h;
-    if (dir.includes('e')) newW += dx;
-    if (dir.includes('w')) newW -= dx;
-    if (dir.includes('s')) newH += dy;
-    if (dir.includes('n')) newH -= dy;
-    updateSize(win.id, { width: newW, height: newH });
-  }, [win.id, updateSize]);
-
-  const handleResizeEnd = useCallback(() => {
-    resizeRef.current = null;
-  }, []);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isActive) closeWindow(win.id);
+  const handleResizeStart = useCallback((handle: ResizeHandle) => {
+    const onMouseMove = (e: MouseEvent) => {
+      const result = handle.onResize(e.movementX, e.movementY, e);
+      updateSize(win.id, result.w, result.h);
+      if (result.x !== undefined || result.y !== undefined) {
+        updatePosition(win.id, result.x ?? win.position.x, result.y ?? win.position.y);
+      }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [isActive, closeWindow, win.id]);
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, [win.id, win.position, win.size, updateSize, updatePosition]);
 
-  if (!meta) return null;
+  const handleTitleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (win.isMaximized) return;
+    if ((e.target as HTMLElement).closest('button')) return;
+    e.preventDefault();
+    dragStartRef.current = { x: e.clientX - win.position.x, y: e.clientY - win.position.y };
 
-  const bgColor = isDark
-    ? (isActive ? 'rgba(25,25,40,0.92)' : 'rgba(22,22,35,0.87)')
-    : (isActive ? 'rgba(255,255,255,0.80)' : 'rgba(255,255,255,0.67)');
-
-  const borderColor = isDark
-    ? (isActive ? `${meta.accentColor}55` : 'rgba(255,255,255,0.10)')
-    : (isActive ? `${meta.accentColor}40` : 'rgba(255,255,255,0.25)');
+    const onMouseMove = (me: MouseEvent) => {
+      if (!dragStartRef.current) return;
+      const newX = Math.max(-100, me.clientX - dragStartRef.current.x);
+      const newY = Math.max(-20, me.clientY - dragStartRef.current.y);
+      updatePosition(win.id, newX, newY);
+    };
+    const onMouseUp = () => {
+      dragStartRef.current = null;
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, [win.id, win.isMaximized, win.position, updatePosition]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      className="fixed"
+      style={{
+        left: 0,
+        top: 0,
+        zIndex: win.zIndex,
+        width: win.isMaximized ? '100vw' : win.size.width,
+        height: win.isMaximized ? 'calc(100vh - 48px)' : win.size.height,
+      }}
+      initial={{ opacity: 0, scale: 0.9 }}
       animate={{
         opacity: 1,
         scale: 1,
         x: win.isMaximized ? 0 : win.position.x,
         y: win.isMaximized ? 0 : win.position.y,
       }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-      // Use x/y drag so Framer Motion owns the coordinate system
-      drag={!win.isMaximized}
-      dragMomentum={false}
-      dragElastic={0}
-      onDragEnd={handleDragEnd}
-      style={{
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        width: win.isMaximized ? '100vw' : win.size.width,
-        height: win.isMaximized ? 'calc(100vh - 48px)' : win.size.height,
-        zIndex: win.zIndex,
-      }}
-      className="rounded-xl"
-      onPointerDown={handlePointerDown}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+      onMouseDown={() => focusWindow(win.id)}
     >
       <div
-        className="w-full h-full rounded-xl overflow-hidden flex flex-col"
+        className="glass rounded-xl overflow-hidden flex flex-col h-full relative"
         style={{
-          background: bgColor,
-          backdropFilter: 'blur(24px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-          border: `1px solid ${borderColor}`,
-          boxShadow: isActive
-            ? `0 25px 60px rgba(0,0,0,0.15), 0 0 0 1px ${meta.accentColor}15 inset`
-            : '0 10px 30px rgba(0,0,0,0.08)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+          borderColor: isTopWindow ? `${accent}30` : 'rgba(255,255,255,0.08)',
         }}
       >
-        <div className="shrink-0" style={{ touchAction: 'none' }}>
-          <TitleBar
-            windowId={win.id}
-            title={meta.title}
-            accentColor={meta.accentColor}
-            icon={meta.icon}
-          />
+        {/* Accent gradient overlay */}
+        <div className={`absolute inset-0 pointer-events-none bg-gradient-to-b ${gradient} rounded-xl`} />
+
+        {/* Title Bar - draggable */}
+        <div
+          className="h-10 flex items-center px-3 gap-2 select-none shrink-0 border-b border-white/[0.06] relative"
+          style={{ cursor: win.isMaximized ? 'default' : 'grab' }}
+          onMouseDown={handleTitleMouseDown}
+          onDoubleClick={() => toggleMaximize(win.id)}
+        >
+          {/* Accent bar on title */}
+          {isTopWindow && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 h-[2px]"
+              style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
+              layoutId="accent-bar"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+            />
+          )}
+
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div
+              className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+              style={{ background: `${accent}25` }}
+            >
+              <AppIcon id={win.id} size={12} />
+            </div>
+            <span className="text-xs font-medium text-white/80 truncate">{win.title}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              className="w-7 h-7 rounded-md flex items-center justify-center text-white/50 hover:bg-white/10 hover:text-white transition-colors"
+              onClick={(e) => { e.stopPropagation(); toggleMinimize(win.id); }}
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+            <button
+              className="w-7 h-7 rounded-md flex items-center justify-center text-white/50 hover:bg-white/10 hover:text-white transition-colors"
+              onClick={(e) => { e.stopPropagation(); toggleMaximize(win.id); }}
+            >
+              {win.isMaximized ? <Square className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+            </button>
+            <button
+              className="w-7 h-7 rounded-md flex items-center justify-center text-white/50 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+              onClick={(e) => { e.stopPropagation(); closeWindow(win.id); }}
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-auto">
+        {/* Content */}
+        <div className="flex-1 overflow-auto min-h-0 relative z-10">
           {children}
         </div>
 
+        {/* Resize handles (only when not maximized) */}
         {!win.isMaximized && (
           <>
-            {(['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'] as ResizeDir[]).map(dir => (
-              <div
-                key={dir}
-                className="absolute z-[100]"
-                style={getResizeHandleStyle(dir, RESIZE_HANDLE_SIZE)}
-                onPointerDown={(e) => handleResizeStart(dir, e)}
-                onPointerMove={handleResizeMove}
-                onPointerUp={handleResizeEnd}
-              />
-            ))}
+            <div
+              className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize z-20"
+              onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); handleResizeStart(resizeHandles[0]); }}
+            />
+            <div
+              className="absolute top-0 bottom-0 right-0 w-2 cursor-e-resize z-20"
+              onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); handleResizeStart(resizeHandles[1]); }}
+            />
+            <div
+              className="absolute bottom-0 left-0 right-0 h-2 cursor-s-resize z-20"
+              onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); handleResizeStart(resizeHandles[2]); }}
+            />
+            <div
+              className="absolute bottom-0 left-0 w-5 h-5 cursor-sw-resize z-20"
+              onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); handleResizeStart(resizeHandles[3]); }}
+            />
           </>
         )}
       </div>
     </motion.div>
   );
-}
-
-function getResizeHandleStyle(dir: ResizeDir, size: number): React.CSSProperties {
-  switch (dir) {
-    case 'n': return { top: 0, left: size, right: size, height: size, cursor: 'n-resize' };
-    case 's': return { bottom: 0, left: size, right: size, height: size, cursor: 's-resize' };
-    case 'e': return { right: 0, top: size, bottom: size, width: size, cursor: 'e-resize' };
-    case 'w': return { left: 0, top: size, bottom: size, width: size, cursor: 'w-resize' };
-    case 'ne': return { top: 0, right: 0, width: size + 4, height: size + 4, cursor: 'ne-resize' };
-    case 'nw': return { top: 0, left: 0, width: size + 4, height: size + 4, cursor: 'nw-resize' };
-    case 'se': return { bottom: 0, right: 0, width: size + 4, height: size + 4, cursor: 'se-resize' };
-    case 'sw': return { bottom: 0, left: 0, width: size + 4, height: size + 4, cursor: 'sw-resize' };
-  }
 }

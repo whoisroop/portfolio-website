@@ -1,282 +1,290 @@
-import type { ComponentType } from 'react';
-import { 
-  IconAbout, IconProjects, IconSkills, IconExperience,
-  IconEducation, IconResume, IconContact, IconTerminal,
-  IconCloud, IconObserve, IconDevops, IconCoding, IconAi
-} from '@/components/ui/FlaticonIcons';
-
-export interface Project {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  technologies: string[];
-  github: string;
-  demo: string;
-  category: 'platform' | 'ai-ml' | 'devops' | 'infra';
-}
-
 export interface Skill {
   name: string;
   level: number;
-  icon: ComponentType<{ size?: number; className?: string }>;
-  color: string;
 }
 
 export interface SkillCategory {
   title: string;
+  icon: string;
+  color: string;
   skills: Skill[];
+}
+
+export interface Project {
+  title: string;
+  description: string;
+  tags: string[];
+  link?: string;
+  highlights: string[];
 }
 
 export interface Experience {
   company: string;
-  position: string;
-  dates: string;
-  responsibilities: string[];
-  technologies: string[];
-  logo: string;
+  role: string;
+  period: string;
+  type: 'fulltime' | 'intern' | 'freelance';
+  bullets: string[];
+  color: string;
 }
 
 export interface Education {
   institution: string;
   degree: string;
   year: string;
-  coursework: string[];
-  achievements: string[];
-  logo: string;
+  details: string[];
+  cgpa: string;
+  rank: string;
 }
 
 export interface DesktopIcon {
   id: string;
   label: string;
-  icon: ComponentType<{ size?: number; className?: string }>;
-  color: string;
-  windowId: string;
+  iconUrl: string;
 }
 
-export const portfolioData = {
-  name: "Roop Lala",
-  title: "Platform & DevOps Engineer",
-  tagline: "I build the infrastructure that helps teams ship faster.",
-  location: "Hyderabad, India",
-  email: "whoisroop.work@gmail.com",
-  phone: "+91 997940xxxx",
-  github: "https://github.com/whoisroop",
-  linkedin: "https://linkedin.com/in/roop-lala",
-  twitter: "https://github.com/whoisroop",
-  website: "https://github.com/whoisroop",
-  
+export interface PortfolioData {
+  name: string;
+  title: string;
+  tagline: string;
+  location: string;
+  email: string;
+  phone: string;
+  github: string;
+  linkedin: string;
+  githubUsername: string;
+  linkedinUsername: string;
   about: {
-    bio: `Hey, I'm Roop — I work on platforms and pipelines at GE Vernova, where I spend my days 
-    wrangling Kubernetes clusters, automating deployments, and making sure things don't break at 3 AM.
+    bio: string;
+    interests: string[];
+    philosophy: string;
+  };
+  projects: Project[];
+  skillCategories: SkillCategory[];
+  experience: Experience[];
+  education: Education[];
+  desktopIcons: DesktopIcon[];
+}
 
-    I fell in love with infrastructure because I believe great platforms disappear into the background — 
-    they just work. Over the past couple of years, I've built CI/CD systems that serve 200+ repositories, 
-    saved $48K/year by right-sizing cloud resources, and helped 15+ teams adopt self-service deployments.
+const CDN = 'https://cdn-icons-png.flaticon.com/512';
 
-    Outside of work, I'm deep into the AI-assisted development space. I use Claude and OpenCode daily, 
-    tinker with MCP servers, and experiment with sub-agents to automate the boring parts of engineering. 
-    I also enjoy competitive programming (1000+ problems solved), mentoring, and the occasional hackathon.`,
+export const portfolioData: PortfolioData = {
+  name: 'Roop Lala',
+  title: 'Platform & DevOps Engineer',
+  tagline: 'I build the infrastructure that helps teams ship faster.',
+  location: 'Hyderabad, India',
+  email: 'whoisroop.work@gmail.com',
+  phone: '+91 997940xxxx',
+  github: 'https://github.com/whoisroop',
+  linkedin: 'https://linkedin.com/in/roop-lala',
+  githubUsername: 'whoisroop',
+  linkedinUsername: 'roop-lala',
+
+  about: {
+    bio: `Hey, I'm Roop — a Platform & DevOps Engineer passionate about building robust, scalable infrastructure. I design and maintain CI/CD pipelines for 200+ repositories, saving $48K/year through automated infrastructure optimization. I empower 15+ teams with self-service deployment platforms and use Claude, OpenCode, and MCP daily to accelerate development workflows. Currently at GE Vernova, I build the internal developer platforms that make shipping software feel invisible.`,
     interests: [
-      "Kubernetes & GitOps",
-      "AI-Assisted Development",
-      "Platform Engineering",
-      "Cloud Cost Optimization",
-      "Competitive Programming",
-      "Open Source"
+      'Kubernetes & GitOps',
+      'AI-Assisted Development',
+      'Platform Engineering',
+      'Developer Experience (DevEx)',
+      'Cloud-Native Architecture',
+      'Infrastructure as Code',
     ],
-    philosophy: "Make the platform invisible. Build things that empower others."
+    philosophy: 'Make the platform invisible. Build things that empower others.',
   },
 
   projects: [
     {
-      id: "1",
-      title: "SIRE — CI/CD Platform",
-      description: "Architected GE Vernova's core CI/CD platform for product release readiness. Shipped 10+ applications to production Kubernetes with automated quality gates, and scaled it to handle 200+ repos.",
-      image: "",
-      technologies: ["Kubernetes", "GitHub Actions", "ArgoCD", "GitOps", "Helm", "Backstage"],
-      github: "https://github.com/whoisroop",
-      demo: "",
-      category: "platform"
+      title: 'Embryo Viability Classifier',
+      description: 'CNN-based embryo viability classifier achieving 70-75% accuracy with 15% cost reduction for IVF applications.',
+      tags: ['PyTorch', 'CNN', 'Python', 'Medical AI'],
+      link: 'https://github.com/whoisroop',
+      highlights: [
+        '70-75% classification accuracy',
+        '15% reduction in operational costs',
+        'Delivered production-ready inference API',
+      ],
     },
     {
-      id: "2",
-      title: "Cloud Cost Optimizer",
-      description: "Re-architected the provisioning model to stop paying for idle environments. Automated resource allocation and tuned Kubernetes clusters for actual workload patterns — saved $48K/year.",
-      image: "",
-      technologies: ["AWS", "Terraform", "Kubernetes", "Python", "Prometheus", "Grafana"],
-      github: "https://github.com/whoisroop",
-      demo: "",
-      category: "infra"
+      title: 'SPARK — Smart Park',
+      description: 'A smart parking platform that connects drivers with unused private parking spaces while enabling property owners to monetize available spots.',
+      tags: ['Node.js', 'Express.js', 'MongoDB', 'MapQuest API', 'MapBox'],
+      link: 'https://github.com/whoisroop/Smart-Park',
+      highlights: [
+        'ML-powered parking recommendations',
+        'Geolocation-based parking discovery',
+        'Address conversion via MapQuest Geocoding API',
+        'Interactive parking availability maps using MapBox',
+      ],
     },
     {
-      id: "3",
-      title: "Energy Load Forecaster",
-      description: "Built a short-term load forecasting system for real-time grid dispatch using OpenSTEF and XGBoost with an MLflow tracking backend. Hit 90%+ accuracy and sped up inference by 35%.",
-      image: "",
-      technologies: ["Python", "XGBoost", "MLflow", "OpenSTEF", "Docker", "AWS"],
-      github: "https://github.com/whoisroop",
-      demo: "",
-      category: "ai-ml"
+      title: 'Cloud Cost Optimizer',
+      description: 'Automated cloud resource right-sizing using ML-driven recommendations and policy-based enforcement, achieving $48K in annual savings.',
+      tags: ['Python', 'AWS', 'Terraform', 'ML'],
+      highlights: [
+        '$48K/year in cloud cost savings',
+        'Automated 200+ resource optimization rules',
+        'Real-time cost anomaly detection',
+      ],
     },
     {
-      id: "4",
-      title: "Backstage Developer Portal",
-      description: "Rolled out Backstage to 15+ engineering teams, giving everyone a single pane of glass for self-service deployments. Shared GitHub Actions workflows meant anyone could ship without waiting.",
-      image: "",
-      technologies: ["Backstage", "GitHub Actions", "TypeScript", "React", "Kubernetes"],
-      github: "https://github.com/whoisroop",
-      demo: "",
-      category: "devops"
+      title: 'Energy Load Forecaster',
+      description: 'ML pipeline for predicting energy consumption patterns with 90%+ accuracy, achieving 35% faster inference using optimized models.',
+      tags: ['Python', 'MLflow', 'PyTorch', 'Apache Kafka'],
+      highlights: [
+        '90%+ forecast accuracy on test data',
+        '35% faster inference with optimized models',
+        'Deployed as production MLOps pipeline',
+      ],
     },
-    {
-      id: "5",
-      title: "Embryo Viability Classifier",
-      description: "Built a CNN pipeline to classify embryo viability from time-lapse microscope images. Not perfect at 70-75% accuracy, but enough to cut a client's manual screening costs by 15%.",
-      image: "",
-      technologies: ["Python", "TensorFlow", "CNN", "Computer Vision", "MLflow"],
-      github: "https://github.com/whoisroop",
-      demo: "",
-      category: "ai-ml"
-    }
-  ] as Project[],
+  ],
 
   skillCategories: [
     {
-      title: "Cloud & Infrastructure",
+      title: 'Cloud & Infrastructure',
+      icon: 'cloud',
+      color: '#6366f1',
       skills: [
-        { name: "AWS", level: 90, icon: IconCloud, color: "#FF9900" },
-        { name: "Kubernetes", level: 92, icon: IconCloud, color: "#326CE5" },
-        { name: "Docker", level: 90, icon: IconCloud, color: "#2496ED" },
-        { name: "Terraform", level: 85, icon: IconCloud, color: "#7B42BC" },
-        { name: "Helm", level: 82, icon: IconCloud, color: "#0F1689" },
-        { name: "Linux", level: 88, icon: IconCloud, color: "#FCC624" },
-      ]
+        { name: 'AWS', level: 90 },
+        { name: 'Kubernetes', level: 92 },
+        { name: 'Docker', level: 90 },
+        { name: 'Terraform', level: 85 },
+        { name: 'Helm', level: 82 },
+        { name: 'Linux', level: 88 },
+      ],
     },
     {
-      title: "CI/CD & Delivery",
+      title: 'CI/CD & Delivery',
+      icon: 'devops',
+      color: '#8b5cf6',
       skills: [
-        { name: "GitHub Actions", level: 95, icon: IconDevops, color: "#2088FF" },
-        { name: "ArgoCD", level: 88, icon: IconDevops, color: "#EF7B4D" },
-        { name: "Jenkins", level: 80, icon: IconDevops, color: "#D24939" },
-        { name: "Backstage", level: 85, icon: IconDevops, color: "#6C43E0" },
-        { name: "GitOps", level: 92, icon: IconDevops, color: "#F05032" },
-        { name: "Artifactory", level: 78, icon: IconDevops, color: "#41BF47" },
-      ]
+        { name: 'GitHub Actions', level: 95 },
+        { name: 'ArgoCD', level: 88 },
+        { name: 'Jenkins', level: 80 },
+        { name: 'Backstage', level: 85 },
+        { name: 'GitOps', level: 92 },
+        { name: 'Artifactory', level: 78 },
+      ],
     },
     {
-      title: "Languages & Scripting",
+      title: 'Languages & Scripting',
+      icon: 'coding',
+      color: '#06b6d4',
       skills: [
-        { name: "Python", level: 90, icon: IconCoding, color: "#3776AB" },
-        { name: "Bash", level: 88, icon: IconCoding, color: "#4EAA25" },
-        { name: "Groovy", level: 75, icon: IconCoding, color: "#4298B8" },
-      ]
+        { name: 'Python', level: 90 },
+        { name: 'Bash', level: 88 },
+        { name: 'Groovy', level: 75 },
+        { name: 'TypeScript', level: 82 },
+        { name: 'Go', level: 70 },
+      ],
     },
     {
-      title: "AI & Automation",
+      title: 'AI & Automation',
+      icon: 'ai',
+      color: '#ec4899',
       skills: [
-        { name: "Claude / LLMs", level: 90, icon: IconAi, color: "#D97706" },
-        { name: "MCP Servers", level: 85, icon: IconAi, color: "#7C3AED" },
-        { name: "Sub-agents", level: 80, icon: IconAi, color: "#2563EB" },
-        { name: "OpenCode", level: 88, icon: IconAi, color: "#DB2777" },
-        { name: "MLflow", level: 85, icon: IconAi, color: "#0194E2" },
-        { name: "MLOps", level: 82, icon: IconAi, color: "#16A34A" },
-      ]
+        { name: 'Claude / LLMs', level: 90 },
+        { name: 'MCP Servers', level: 85 },
+        { name: 'Sub-agents', level: 80 },
+        { name: 'OpenCode', level: 88 },
+        { name: 'MLflow', level: 85 },
+        { name: 'MLOps', level: 82 },
+      ],
     },
     {
-      title: "Observability & Practices",
+      title: 'Observability & Practices',
+      icon: 'observe',
+      color: '#10b981',
       skills: [
-        { name: "Grafana", level: 85, icon: IconObserve, color: "#F46800" },
-        { name: "Prometheus", level: 82, icon: IconObserve, color: "#E6522C" },
-        { name: "SRE", level: 85, icon: IconObserve, color: "#4285F4" },
-        { name: "DevEx", level: 88, icon: IconObserve, color: "#0D9488" },
-        { name: "Multi-Cluster K8s", level: 80, icon: IconObserve, color: "#326CE5" },
-        { name: "Microservices", level: 85, icon: IconObserve, color: "#FF0055" },
-      ]
+        { name: 'Grafana', level: 85 },
+        { name: 'Prometheus', level: 82 },
+        { name: 'SRE', level: 85 },
+        { name: 'DevEx', level: 88 },
+        
+        { name: 'Microservices', level: 85 },
+      ],
     },
-  ] as SkillCategory[],
+  ],
 
   experience: [
     {
-      company: "GE Vernova — Grid Software",
-      position: "Software Engineer | Platform & DevOps Engineering",
-      dates: "Aug 2024 – Present",
-      responsibilities: [
-        "Built SIRE, the CI/CD backbone for product releases at GE Vernova — it now handles 200+ repos and 10+ production apps",
-        "Saved $48K/year by killing idle cloud environments and right-sizing our Kubernetes clusters for actual workloads",
-        "Pushed pipeline reliability from flaky to 94% success rate by adding automated failure recovery and smarter deployment controls",
-        "Led a small team of 3 to integrate a geospatial network management platform into our release pipeline — shipped 20+ packages in 2 sprints",
-        "Championed Backstage adoption across 15+ teams so engineers could self-serve deployments without filing tickets or waiting on ops",
-        "Cut AWS environment spin-up time by 30% and set up persistent GitOps environments with ArgoCD so staging actually mirrors production"
+      company: 'GE Vernova',
+      role: 'Software Engineer',
+      period: 'Aug 2024 – Present',
+      type: 'fulltime',
+      color: '#6366f1',
+      bullets: [
+        'Architected SIRE — CI/CD platform serving 200+ repositories and 10+ production applications',
+        'Achieved 94% pipeline reliability across multi-region deployments',
+        'Led Backstage adoption across 15+ engineering teams for self-service infrastructure',
+        'Reduced AWS infrastructure spin-up time by 30% through automated provisioning',
+        'Built self-service deployment workflows with GitHub Actions and ArgoCD',
+        'Mentored 2 interns on platform engineering and DevOps best practices',
       ],
-      technologies: ["Kubernetes", "GitHub Actions", "ArgoCD", "Terraform", "AWS", "Backstage", "Helm", "GitOps"],
-      logo: ""
     },
     {
-      company: "GE Vernova — Grid Software",
-      position: "Software Engineer Intern | MLOps Engineering",
-      dates: "Jan 2024 – Jul 2024",
-      responsibilities: [
-        "Built a load forecasting model for real-time grid dispatch — hit 90%+ accuracy with OpenSTEF and XGBoost, which is pretty solid for energy data",
-        "Set up an MLflow-based experiment tracking system so the team could stop losing model versions and reproduce results reliably. Also squeezed 35% more speed out of inference with better feature engineering"
+      company: 'GE Vernova',
+      role: 'SWE Intern — MLOps',
+      period: 'Jan – Jul 2024',
+      type: 'intern',
+      color: '#8b5cf6',
+      bullets: [
+        'Developed energy load forecasting pipeline achieving 90%+ accuracy',
+        'Implemented MLflow-based experiment tracking and model registry',
+        'Achieved 35% faster inference through model optimization',
+        'Built automated retraining pipeline triggered on data drift detection',
       ],
-      technologies: ["Python", "XGBoost", "MLflow", "OpenSTEF", "MLOps", "AWS"],
-      logo: ""
     },
     {
-      company: "MetaLoop Marketing",
-      position: "Freelance Machine Learning Engineer",
-      dates: "Aug 2023 – Oct 2023",
-      responsibilities: [
-        "Trained a CNN to classify embryo viability from time-lapse microscope images — not medical-grade, but good enough at 70-75% to cut the client's manual review costs by 15%"
+      company: 'MetaLoop Marketing',
+      role: 'Freelance ML Engineer',
+      period: 'Aug – Oct 2023',
+      type: 'freelance',
+      color: '#ec4899',
+      bullets: [
+        'Designed CNN architecture for embryo viability classification',
+        'Achieved 70-75% classification accuracy on clinical dataset',
+        'Delivered production-ready inference API with FastAPI',
+        'Reduced operational costs by 15% through model optimization',
       ],
-      technologies: ["Python", "TensorFlow", "CNN", "Computer Vision", "MLflow"],
-      logo: ""
-    }
-  ] as Experience[],
+    },
+  ],
 
   education: [
     {
-      institution: "IIIT Surat",
-      degree: "B.Tech, Computer Science & Engineering",
-      year: "2020 – 2024",
-      coursework: ["Data Structures", "Algorithms", "Operating Systems", "Computer Networks", "Database Systems", "Machine Learning"],
-      achievements: [
-        "CGPA 9.57 / 10 — Rank 1 in the batch",
-        "GE Vernova Impact Award for 'Delivering with Accountability'",
-        "Top 10 finalist at DotSlash National Hackathon (out of 1,000+)",
-        "1000+ problems solved on LeetCode & GeeksforGeeks",
-        "Mentored 2 interns — both converted to full-time"
+      institution: 'IIIT Surat',
+      degree: 'B.Tech Computer Science & Engineering',
+      year: '2020 – 2024',
+      cgpa: '9.57/10',
+      rank: 'Rank 1',
+      details: [
+        'GE Vernova Impact Award — Outstanding contribution to platform engineering',
+        'DotSlash National Hackathon top-10 finalist (1,000+ participants)',
+        '1000+ LeetCode/GfG problems solved across platforms',
+        'Mentored 2 interns on DevOps and cloud infrastructure',
+        'Open source contributor to CNCF projects',
       ],
-      logo: ""
-    }
-  ] as Education[],
+    },
+  ],
 
   desktopIcons: [
-    { id: "about", label: "About Me", icon: IconAbout, color: "#4F46E5", windowId: "about" },
-    { id: "projects", label: "Projects", icon: IconProjects, color: "#7C3AED", windowId: "projects" },
-    { id: "skills", label: "Skills", icon: IconSkills, color: "#0D9488", windowId: "skills" },
-    { id: "experience", label: "Experience", icon: IconExperience, color: "#EA580C", windowId: "experience" },
-    { id: "education", label: "Education", icon: IconEducation, color: "#DB2777", windowId: "education" },
-    { id: "resume", label: "Resume", icon: IconResume, color: "#16A34A", windowId: "resume" },
-    { id: "contact", label: "Contact", icon: IconContact, color: "#2563EB", windowId: "contact" },
-    { id: "terminal", label: "Terminal", icon: IconTerminal, color: "#1E293B", windowId: "terminal" },
-  ] as DesktopIcon[]
+    { id: 'about', label: 'About Me', iconUrl: `${CDN}/7340/7340710.png` },
+    { id: 'projects', label: 'Projects', iconUrl: `${CDN}/6577/6577281.png` },
+    { id: 'skills', label: 'Skills', iconUrl: `${CDN}/18043/18043561.png` },
+    { id: 'experience', label: 'Experience', iconUrl: `${CDN}/11321/11321307.png` },
+    { id: 'education', label: 'Education', iconUrl: `${CDN}/2987/2987867.png` },
+    { id: 'resume', label: 'Resume', iconUrl: `${CDN}/12908/12908904.png` },
+    { id: 'contact', label: 'Contact', iconUrl: `${CDN}/2132/2132622.png` },
+    { id: 'terminal', label: 'Terminal', iconUrl: `${CDN}/9825/9825966.png` },
+  ],
 };
 
-export const windowMeta: Record<string, { 
-  title: string; 
-  accentColor: string; 
-  icon: ComponentType<{ size?: number; className?: string }>; 
-  width: number; 
-  height: number 
-}> = {
-  about: { title: "About Me", accentColor: "#4F46E5", icon: IconAbout, width: 580, height: 500 },
-  projects: { title: "Projects", accentColor: "#7C3AED", icon: IconProjects, width: 750, height: 550 },
-  skills: { title: "Skills", accentColor: "#0D9488", icon: IconSkills, width: 680, height: 520 },
-  experience: { title: "Experience", accentColor: "#EA580C", icon: IconExperience, width: 660, height: 540 },
-  education: { title: "Education", accentColor: "#DB2777", icon: IconEducation, width: 600, height: 520 },
-  resume: { title: "Resume", accentColor: "#16A34A", icon: IconResume, width: 650, height: 580 },
-  contact: { title: "Contact", accentColor: "#2563EB", icon: IconContact, width: 550, height: 520 },
-  terminal: { title: "Terminal", accentColor: "#1E293B", icon: IconTerminal, width: 600, height: 420 },
+export const SKILL_ICON_MAP: Record<string, string> = {
+  cloud: `${CDN}/6800/6800631.png`,
+  devops: `${CDN}/16942/16942846.png`,
+  coding: `${CDN}/4013/4013275.png`,
+  ai: `${CDN}/8131/8131880.png`,
+  observe: `${CDN}/470/470979.png`,
 };
+
+// No external icons to preload — using lucide-react (bundled SVG)
+export const ALL_ICON_URLS: string[] = [];

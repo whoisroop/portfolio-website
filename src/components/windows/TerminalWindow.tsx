@@ -1,205 +1,173 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { portfolioData, windowMeta } from '@/data/portfolio';
-import { useWindows } from '@/context/WindowContext';
+import { motion } from 'framer-motion';
+import { portfolioData } from '@/data/portfolio';
 
-interface Command {
-  input: string;
-  output: React.ReactNode;
+interface CommandOutput {
+  type: 'input' | 'output' | 'error' | 'ascii';
+  content: string;
 }
 
-const helpText = `
+const HIRE_ME_ASCII = `
+██╗  ██╗██╗██████╗ ███████╗    ███╗   ███╗███████╗
+██║  ██║██║██╔══██╗██╔════╝    ████╗ ████║██╔════╝
+███████║██║██████╔╝█████╗      ██╔████╔██║█████╗  
+██╔══██║██║██╔══██╗██╔══╝      ██║╚██╔╝██║██╔══╝  
+██║  ██║██║██║  ██║███████╗    ██║ ╚═╝ ██║███████╗
+╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚══════╝    ╚═╝     ╚═╝╚══════╝
+                                                  
+  Let's build something awesome together! 🚀
+`.trim();
+
+const COMMANDS: Record<string, (args: string[]) => string> = {
+  help: () => `
 Available commands:
-  help      - Show this help message
-  about     - Display about information
-  projects  - List all projects
-  skills    - List all skills
-  experience- Show work experience
-  contact   - Show contact information
-  clear     - Clear the terminal
-  theme     - Toggle dark/light mode
-  whoami    - Display current user
-  date      - Show current date/time
-  neofetch  - System information
-  open [id] - Open a window (about, projects, skills, etc.)
-`;
+  help       - Show this help message
+  whoami     - Display current user
+  neofetch   - System information
+  skills     - List skills
+  projects   - List projects
+  experience - Work history
+  hireme     - Why you should hire me
+  clear      - Clear the terminal
+  date       - Show current date
+  echo       - Echo a message
+  pwd        - Print working directory
+  ls         - List directory contents
+  about      - About me
+`.trim(),
+
+  hireme: () => HIRE_ME_ASCII,
+
+  whoami: () => portfolioData.githubUsername,
+
+  neofetch: () => `
+         █████████          ${portfolioData.githubUsername}@portfolio-os
+       ██████████████       ─────────────────────────────
+     ██████████████████     OS: Portfolio OS v3.0
+    ████████████████████    Host: GitHub Pages
+    ████████████████████    User: ${portfolioData.githubUsername}
+    ███████        ███████  Title: ${portfolioData.title}
+     ██████  ██████  ████   Location: ${portfolioData.location}
+      ██████████████████    Projects: ${portfolioData.projects.length}
+       ████████████████     Skills: 27 across 5 categories
+         █████████████      GitHub: ${portfolioData.github}
+           █████████        
+`.trim(),
+
+  skills: () => portfolioData.skillCategories
+    .map(c => `  ▸ ${c.title}: ${c.skills.map(s => s.name).join(', ')}`)
+    .join('\n'),
+
+  projects: () => portfolioData.projects
+    .map((p, i) => `  ${i + 1}. ${p.title} — ${p.tags.join(', ')}\n     ${p.description}`)
+    .join('\n\n'),
+
+  experience: () => portfolioData.experience
+    .map(e => `  ▸ ${e.role} @ ${e.company} (${e.period})`)
+    .join('\n'),
+
+  date: () => new Date().toString(),
+
+  pwd: () => `/home/${portfolioData.githubUsername}`,
+
+  ls: () => 'about.txt  projects/  skills.txt  experience/  contact.txt  resume.pdf',
+
+  about: () => `Hey, I'm ${portfolioData.name} — ${portfolioData.tagline}`,
+
+  echo: (args: string[]) => args.join(' '),
+};
 
 export function TerminalWindow() {
-  const [commands, setCommands] = useState<Command[]>([
-    { input: '', output: <WelcomeMessage /> }
+  const [history, setHistory] = useState<CommandOutput[]>([
+    { type: 'ascii', content: HIRE_ME_ASCII },
+    { type: 'output', content: `\nWelcome to whoisroop OS v1.0 — Type 'help' to get started.\n` },
   ]);
-  const [currentInput, setCurrentInput] = useState('');
+  const [input, setInput] = useState('');
+  const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const { openWindow } = useWindows();
 
-  const scrollToBottom = useCallback(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [history]);
+
+  const executeCommand = useCallback((cmd: string) => {
+    const trimmed = cmd.trim();
+    if (!trimmed) return;
+
+    setHistory(prev => [...prev, { type: 'input', content: `$ ${trimmed}` }]);
+
+    if (trimmed === 'clear') {
+      setHistory([]);
+      return;
+    }
+
+    const parts = trimmed.split(/\s+/);
+    const command = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    const handler = COMMANDS[command];
+    if (handler) {
+      const output = handler(args);
+      if (command === 'hireme') {
+        setHistory(prev => [...prev, { type: 'ascii', content: output }]);
+      } else {
+        setHistory(prev => [...prev, { type: 'output', content: output }]);
+      }
+    } else {
+      setHistory(prev => [...prev, { type: 'error', content: `command not found: ${command}` }]);
     }
   }, []);
 
-  useEffect(() => { scrollToBottom(); }, [commands, scrollToBottom]);
-
-  const handleCommand = (cmd: string) => {
-    const trimmed = cmd.trim().toLowerCase();
-    let output: React.ReactNode = null;
-
-    switch (true) {
-      case trimmed === 'help':
-        output = <pre className="text-xs whitespace-pre-wrap">{helpText}</pre>;
-        break;
-      case trimmed === 'about':
-        output = (
-          <div className="space-y-1">
-            <p className="text-purple-400">{portfolioData.name}</p>
-            <p className="text-xs">{portfolioData.title}</p>
-            <p className="text-xs text-gray-400">{portfolioData.about.bio}</p>
-          </div>
-        );
-        break;
-      case trimmed === 'projects':
-        output = (
-          <div className="space-y-1">
-            {portfolioData.projects.map(p => (
-              <div key={p.id}>
-                <span className="text-cyan-400">{p.title}</span>
-                <span className="text-gray-400 text-xs"> - {p.description.slice(0, 80)}...</span>
-              </div>
-            ))}
-          </div>
-        );
-        break;
-      case trimmed === 'skills':
-        output = (
-          <div className="space-y-2">
-            {portfolioData.skillCategories.map(cat => (
-              <div key={cat.title}>
-                <p className="text-yellow-400 text-xs mb-0.5">{cat.title}:</p>
-                <p className="text-xs text-gray-300">
-                  {cat.skills.map(s => s.name).join(', ')}
-                </p>
-              </div>
-            ))}
-          </div>
-        );
-        break;
-      case trimmed === 'experience':
-        output = (
-          <div className="space-y-1">
-            {portfolioData.experience.map((exp, i) => (
-              <p key={i} className="text-xs">
-                <span className="text-green-400">{exp.position}</span>
-                <span className="text-gray-400"> @ {exp.company} ({exp.dates})</span>
-              </p>
-            ))}
-          </div>
-        );
-        break;
-      case trimmed === 'contact':
-        output = (
-          <div className="space-y-1 text-xs">
-            <p>Email: <span className="text-blue-400">{portfolioData.email}</span></p>
-            <p>Phone: <span className="text-gray-400">{portfolioData.phone}</span></p>
-            <p>Location: <span className="text-gray-400">{portfolioData.location}</span></p>
-            <p>GitHub: <span className="text-purple-400">{portfolioData.github}</span></p>
-          </div>
-        );
-        break;
-      case trimmed === 'clear':
-        setCommands([]);
-        return;
-      case trimmed === 'whoami':
-        output = <p className="text-green-400">whoisroop</p>;
-        break;
-      case trimmed === 'date':
-        output = <p className="text-xs text-gray-400">{new Date().toString()}</p>;
-        break;
-      case trimmed === 'neofetch':
-        output = <Neofetch />;
-        break;
-      case trimmed.startsWith('open '):
-        const windowId = trimmed.split(' ')[1];
-        const meta = windowMeta[windowId];
-        if (meta) {
-          openWindow(windowId, { width: meta.width, height: meta.height });
-          output = <p className="text-green-400 text-xs">Opened {meta.title}</p>;
-        } else {
-          output = <p className="text-red-400 text-xs">Unknown window: {windowId}</p>;
-        }
-        break;
-      default:
-        output = <p className="text-red-400 text-xs">Command not found: {trimmed}. Type 'help' for available commands.</p>;
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      executeCommand(input);
+      setInput('');
     }
-
-    setCommands(prev => [...prev, { input: cmd, output }]);
-    setCurrentInput('');
   };
 
   return (
-    <div 
-      className="flex flex-col h-full bg-gray-950/95 text-green-400 font-mono text-sm"
+    <div
+      className="h-full bg-black/60 font-mono text-xs p-4 flex flex-col"
       onClick={() => inputRef.current?.focus()}
     >
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
-        {commands.map((cmd, i) => (
-          <div key={i}>
-            {cmd.input && (
-              <div className="flex items-center gap-2">
-                <span className="text-green-500 shrink-0">whoisroop@os:~$</span>
-                <span className="text-white">{cmd.input}</span>
-              </div>
+      <div className="flex-1 overflow-auto space-y-0.5">
+        {history.map((entry, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -5 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.1 }}
+          >
+            {entry.type === 'input' && (
+              <div className="text-green-400/80 whitespace-pre-wrap">{entry.content}</div>
             )}
-            <div className="mt-0.5">{cmd.output}</div>
-          </div>
+            {entry.type === 'output' && (
+              <div className="text-white/70 whitespace-pre-wrap">{entry.content}</div>
+            )}
+            {entry.type === 'ascii' && (
+              <div className="text-indigo-400 whitespace-pre-wrap leading-tight">{entry.content}</div>
+            )}
+            {entry.type === 'error' && (
+              <div className="text-red-400/80 whitespace-pre-wrap">{entry.content}</div>
+            )}
+          </motion.div>
         ))}
-        <div className="flex items-center gap-2">
-          <span className="text-green-500 shrink-0">whoisroop@os:~$</span>
-          <input
-            ref={inputRef}
-            type="text"
-            value={currentInput}
-            onChange={e => setCurrentInput(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && currentInput.trim()) {
-                handleCommand(currentInput);
-              }
-            }}
-            className="flex-1 bg-transparent outline-none text-white caret-green-400"
-            autoFocus
-            spellCheck={false}
-          />
-          <span className="w-2 h-5 bg-green-400 animate-pulse" />
-        </div>
+        <div ref={bottomRef} />
       </div>
-    </div>
-  );
-}
 
-function WelcomeMessage() {
-  return (
-    <div className="space-y-1 text-xs">
-      <pre className="text-cyan-400">
-{`╔═══════════════════════════════════╗
-║   Welcome to whoisroop OS v1.0    ║
-║   Type 'help' for commands        ║
-╚═══════════════════════════════════╝`}
-      </pre>
-      <p className="text-gray-400">Type 'help' to explore. Built by whoisroop.</p>
-    </div>
-  );
-}
-
-function Neofetch() {
-  return (
-    <div className="space-y-0.5 text-xs">
-      <p><span className="text-purple-400">OS:</span> whoisroop OS v1.0</p>
-      <p><span className="text-purple-400">Host:</span> GitHub Pages</p>
-      <p><span className="text-purple-400">User:</span> {portfolioData.name}</p>
-      <p><span className="text-purple-400">Title:</span> {portfolioData.title}</p>
-      <p><span className="text-purple-400">Location:</span> {portfolioData.location}</p>
-      <p><span className="text-purple-400">Projects:</span> {portfolioData.projects.length}</p>
-      <p><span className="text-purple-400">Skills:</span> {portfolioData.skillCategories.reduce((acc, c) => acc + c.skills.length, 0)}</p>
-      <p><span className="text-purple-400">GitHub:</span> {portfolioData.github}</p>
+      <div className="flex items-center gap-2 mt-2 shrink-0">
+        <span className="text-green-400 whitespace-nowrap">{portfolioData.githubUsername}@os:~$</span>
+        <input
+          ref={inputRef}
+          type="text"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="flex-1 bg-transparent text-white outline-none border-none caret-indigo-400"
+          spellCheck={false}
+          autoComplete="off"
+        />
+      </div>
     </div>
   );
 }
