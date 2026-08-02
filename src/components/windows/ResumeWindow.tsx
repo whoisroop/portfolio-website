@@ -6,7 +6,7 @@ export function ResumeWindow() {
   const resumeUrl = `https://drive.google.com/file/d/1S9oSETgCgkf4dQy4WtSGrWMfHL-TC3yj/view?usp=drive_link`;
   return (
     <div className="p-5 space-y-5">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
         {[
           { label: 'Experience', value: '2+ Years', icon: Clock, color: '#6366f1' },
           { label: 'Projects', value: `${portfolioData.projects.length}`, icon: Code, color: '#8b5cf6' },

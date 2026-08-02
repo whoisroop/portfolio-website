@@ -23,7 +23,7 @@ export function SkillsWindow() {
               </div>
               <h3 className="text-sm font-semibold text-white">{category.title}</h3>
             </div>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
               {category.skills.map((skill, si) => (
                 <motion.div key={skill.name} className="flex items-center justify-between gap-3" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: ci * 0.1 + si * 0.05 }}>
                   <span className="text-xs text-white/85 truncate flex-1">{skill.name}</span>

@@ -6,8 +6,8 @@ import { AppIcon, DESKTOP_ICON_COLORS } from '@/components/ui/AppIcons';
 
 interface IconPosition { x: number; y: number; }
 const INITIAL_POSITIONS: IconPosition[] = [
-  { x: 24, y: 24 }, { x: 136, y: 24 }, { x: 24, y: 130 }, { x: 136, y: 130 },
-  { x: 24, y: 236 }, { x: 136, y: 236 }, { x: 24, y: 342 }, { x: 136, y: 342 },
+  { x: 8, y: 16 }, { x: 88, y: 16 }, { x: 8, y: 110 }, { x: 88, y: 110 },
+  { x: 8, y: 204 }, { x: 88, y: 204 }, { x: 8, y: 298 }, { x: 88, y: 298 },
 ];
 
 export function DesktopIcons() {
@@ -37,20 +37,20 @@ export function DesktopIcons() {
         <motion.div key={icon.id} className="absolute z-10" style={{ left: positions[i]?.x ?? INITIAL_POSITIONS[i].x, top: positions[i]?.y ?? INITIAL_POSITIONS[i].y, zIndex: dragging === i ? 100 : 10 }}
           initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: dragging === i ? 1.08 : 1 }} transition={{ opacity: { delay: 0.06 * i, duration: 0.3 }, scale: { duration: 0.15 } }}
           onPointerDown={(e) => handlePointerDown(e, i)} onPointerMove={(e) => handlePointerMove(e, i)} onPointerUp={(e) => handlePointerUp(e, i)}>
-          <button className="group flex flex-col items-center gap-1.5 p-2 rounded-xl cursor-pointer w-[88px]" onClick={(e) => handleClick(e, icon.id, icon.label)} onDoubleClick={() => handleDoubleClick(icon.id, icon.label)} style={{ touchAction: 'none' }}>
+          <button className="group flex flex-col items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 rounded-xl cursor-pointer w-[72px] sm:w-[88px]" onClick={(e) => handleClick(e, icon.id, icon.label)} onDoubleClick={() => handleDoubleClick(icon.id, icon.label)} style={{ touchAction: 'none' }}>
             <div className="relative">
               <div className={`absolute -inset-1.5 rounded-2xl transition-colors ${dragging === i ? 'bg-white/10' : 'group-hover:bg-white/5'}`} />
               <div
-                className="relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 group-hover:scale-110"
+                className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all duration-200 group-hover:scale-110"
                 style={{
                   background: `linear-gradient(135deg, ${color}35, ${color}18)`,
                   boxShadow: `0 4px 12px ${color}25`,
                 }}
               >
-                <AppIcon id={icon.id} size={24} />
+                <AppIcon id={icon.id} size={20} className="sm:size-[24px]" />
               </div>
             </div>
-            <span className="relative text-[11px] text-white/80 text-center leading-tight font-medium max-w-[80px] break-words group-hover:text-white transition-colors line-clamp-2" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>{icon.label}</span>
+            <span className="relative text-[10px] sm:text-[11px] text-white/80 text-center leading-tight font-medium max-w-[64px] sm:max-w-[80px] break-words group-hover:text-white transition-colors line-clamp-2" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>{icon.label}</span>
           </button>
         </motion.div>
       );

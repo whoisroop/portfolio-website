@@ -27,7 +27,7 @@ interface WindowContextType {
 
 const WindowContext = createContext<WindowContextType | null>(null);
 
-const defaultSize = { width: 800, height: 520 };
+const getDefaultSize = () => ({ width: Math.min(800, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 40), height: Math.min(520, (typeof window !== 'undefined' ? window.innerHeight : 800) - 120) });
 
 export function WindowProvider({ children }: { children: ReactNode }) {
   const [windows, setWindows] = useState<Map<string, WindowState>>(new Map());
@@ -57,13 +57,14 @@ export function WindowProvider({ children }: { children: ReactNode }) {
       } else {
         const x = 60 + (next.size * 30) % 200;
         const y = 40 + (next.size * 20) % 150;
+        const ds = getDefaultSize();
         next.set(id, {
           id, title, icon,
           isOpen: true,
           isMinimized: false,
           isMaximized: false,
-          position: { x, y },
-          size: defaultSize,
+          position: { x: Math.min(x, (typeof window !== 'undefined' ? window.innerWidth : 1200) - ds.width - 20), y },
+          size: ds,
           zIndex: zCounter + 1,
         });
       }
@@ -95,7 +96,8 @@ export function WindowProvider({ children }: { children: ReactNode }) {
       const win = next.get(id);
       if (win) {
         if (win.isMaximized) {
-          const pb = win.previousBounds || { x: 60, y: 40, width: defaultSize.width, height: defaultSize.height };
+          const ds = getDefaultSize();
+          const pb = win.previousBounds || { x: 60, y: 40, width: ds.width, height: ds.height };
           next.set(id, {
             ...win,
             isMaximized: false,
@@ -131,7 +133,7 @@ export function WindowProvider({ children }: { children: ReactNode }) {
       const next = new Map(prev);
       const win = next.get(id);
       if (win && !win.isMaximized) {
-        next.set(id, { ...win, size: { width: Math.max(360, width), height: Math.max(280, height) } });
+        next.set(id, { ...win, size: { width: Math.max(300, width), height: Math.max(220, height) } });
       }
       return next;
     });
