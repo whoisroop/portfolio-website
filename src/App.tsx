@@ -34,6 +34,7 @@ function Desktop() {
   const { windows, openWindow } = useWindows();
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -41,6 +42,10 @@ function Desktop() {
   }, []);
 
   const closeContextMenu = useCallback(() => setContextMenu(null), []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    setMousePos({ x: e.clientX, y: e.clientY });
+  }, []);
 
   const handleOpenWindow = useCallback((id: string) => {
     const icon = windowComponents[id] ? id : 'about';
@@ -65,22 +70,30 @@ function Desktop() {
     <div
       className="relative w-screen h-screen overflow-hidden select-none"
       onContextMenu={handleContextMenu}
+      onMouseMove={handleMouseMove}
       onClick={closeContextMenu}
     >
       {/* Desktop gradient background */}
       <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0f0a1e] via-[#1a0a2e] to-[#0a0a1a]" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/20 via-transparent to-pink-800/15" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0718] via-[#140827] to-[#080716]" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/25 via-transparent to-pink-800/15" />
+        {/* Interactive Mouse Spotlight Aura */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(99, 102, 241, 0.09), transparent 75%)`,
+          }}
+        />
       </div>
 
-      {/* Animated dotted background */}
+      {/* Animated 3D chromatic particle wave */}
       <DottedSurface isDark />
 
-      {/* Gradient ambient overlays */}
+      {/* Gradient ambient light blooms */}
       <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-        <div className="absolute top-[-20%] left-[-15%] w-[600px] h-[600px] rounded-full bg-purple-500/[0.07] blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-pink-500/[0.06] blur-[120px]" />
-        <div className="absolute top-[40%] left-[50%] -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-indigo-500/[0.05] blur-[100px]" />
+        <div className="absolute top-[-20%] left-[-15%] w-[650px] h-[650px] rounded-full bg-purple-600/[0.08] blur-[130px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[550px] h-[550px] rounded-full bg-pink-500/[0.07] blur-[130px]" />
+        <div className="absolute top-[35%] left-[50%] -translate-x-1/2 w-[650px] h-[320px] rounded-full bg-indigo-500/[0.06] blur-[110px]" />
       </div>
 
       {/* Desktop Icons */}
