@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 type TextMorphProps = {
   words?: string[];
   interval?: number;
+  initialDelay?: number;
   className?: string;
   charClassName?: string;
   speed?: 'normal' | 'fast';
@@ -14,11 +15,20 @@ const defaultWords = ['engineer', 'developer', 'designer'];
 export function TextMorph({
   words = defaultWords,
   interval = 2500,
+  initialDelay = 600,
   className,
   charClassName,
   speed = 'normal',
 }: TextMorphProps) {
   const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (!words.length) return;
+    const timer = setTimeout(() => {
+      setIndex((prev) => (prev + 1) % words.length);
+    }, initialDelay);
+    return () => clearTimeout(timer);
+  }, [words, initialDelay]);
 
   useEffect(() => {
     if (!words.length) return;
