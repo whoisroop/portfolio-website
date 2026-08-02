@@ -108,7 +108,7 @@ export function Window({ win, children }: { win: WindowState; children: ReactNod
         top: 0,
         zIndex: win.zIndex,
         width: win.isMaximized ? '100vw' : win.size.width,
-        height: win.isMaximized ? 'calc(100vh - 48px)' : win.size.height,
+        height: win.isMaximized ? 'calc(100vh - 104px)' : win.size.height,
       }}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{

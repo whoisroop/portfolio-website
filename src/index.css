@@ -39,6 +39,7 @@
 }
 
 @theme {
+  --breakpoint-xs: 30rem;
   --color-glass-white: rgba(255, 255, 255, 0.08);
   --color-glass-border: rgba(255, 255, 255, 0.12);
   --color-glass-dark: rgba(0, 0, 0, 0.30);

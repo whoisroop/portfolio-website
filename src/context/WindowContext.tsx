@@ -111,7 +111,7 @@ export function WindowProvider({ children }: { children: ReactNode }) {
             isMaximized: true,
             previousBounds: { x: win.position.x, y: win.position.y, width: win.size.width, height: win.size.height },
             position: { x: 0, y: 0 },
-            size: { width: typeof window !== 'undefined' ? window.innerWidth : 1200, height: typeof window !== 'undefined' ? window.innerHeight - 52 : 700 },
+            size: { width: typeof window !== 'undefined' ? window.innerWidth : 1200, height: typeof window !== 'undefined' ? window.innerHeight - 104 : 700 },
           });
         }
       }
