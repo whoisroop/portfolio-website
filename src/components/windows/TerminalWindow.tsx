@@ -7,19 +7,7 @@ interface CommandOutput {
   content: string;
 }
 
-// Condensed ASCII for mobile — shorter version
-const HIRE_ME_ASCII_SHORT = `
-██╗  ██╗██╗██████╗ ███████╗
-██║  ██║██║██╔══██╗██╔════╝
-███████║██║██████╔╝█████╗  
-██╔══██║██║██╔══██╗██╔══╝  
-██║  ██║██║██║  ██║███████╗
-╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚══════╝
-
-  Let's build together! 🚀
-`.trim();
-
-const HIRE_ME_ASCII_FULL = `
+const HIRE_ME_ASCII = `
 ██╗  ██╗██╗██████╗ ███████╗    ███╗   ███╗███████╗
 ██║  ██║██║██╔══██╗██╔════╝    ████╗ ████║██╔════╝
 ███████║██║██████╔╝█████╗      ██╔████╔██║█████╗  
@@ -29,6 +17,9 @@ const HIRE_ME_ASCII_FULL = `
                                                   
   Let's build something awesome together! 🚀
 `.trim();
+
+const HIRE_ME_ASCII_FULL = HIRE_ME_ASCII;
+const HIRE_ME_ASCII_SHORT = HIRE_ME_ASCII;
 
 function getAsciiArt() {
   if (typeof window !== 'undefined' && window.innerWidth < 500) {
@@ -114,8 +105,8 @@ export function TerminalWindow() {
     if (e.key === 'Enter') { executeCommand(input); setInput(''); }
   };
 
-  // Responsive text size
-  const asciiClass = 'text-[5px] xs:text-[7px] sm:text-xs leading-tight tracking-tighter sm:tracking-normal';
+  // ASCII art: tiny on mobile so it fits, scales up on larger screens
+  const asciiClass = 'text-[5.5px] xs:text-[8px] sm:text-xs leading-tight tracking-tighter sm:tracking-normal';
 
   return (
     <div className="h-full bg-black/60 font-mono text-[10px] sm:text-xs p-3 sm:p-4 flex flex-col" onClick={() => inputRef.current?.focus()}>

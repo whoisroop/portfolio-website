@@ -55,15 +55,19 @@ export function WindowProvider({ children }: { children: ReactNode }) {
       if (existing) {
         next.set(id, { ...existing, isOpen: true, isMinimized: false, zIndex: zCounter + 1 });
       } else {
-        const x = 60 + (next.size * 30) % 200;
-        const y = 40 + (next.size * 20) % 150;
         const ds = getDefaultSize();
+        const vw = typeof window !== 'undefined' ? window.innerWidth : 1200;
+        const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+        const maxX = Math.max(0, vw - ds.width - 10);
+        const maxY = Math.max(0, vh - ds.height - 110);
+        const x = Math.min(20 + (next.size * 25) % Math.max(1, maxX), maxX);
+        const y = Math.min(30 + (next.size * 18) % Math.max(1, maxY), maxY);
         next.set(id, {
           id, title, icon,
           isOpen: true,
           isMinimized: false,
           isMaximized: false,
-          position: { x: Math.min(x, (typeof window !== 'undefined' ? window.innerWidth : 1200) - ds.width - 20), y },
+          position: { x, y },
           size: ds,
           zIndex: zCounter + 1,
         });
